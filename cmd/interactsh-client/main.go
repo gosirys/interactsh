@@ -58,6 +58,15 @@ func main() {
 		defer outputFile.Close()
 	}
 
+	var payloadsFile *os.File
+	var err2 error
+
+
+	if payloadsFile, err2 = os.Create("payloads.txt"); err2 != nil {
+		gologger.Fatal().Msgf("Could not create payloads file: %s\n", err2)
+	}
+	defer payloadsFile.Close()
+
 	client, err := client.New(&client.Options{
 		ServerURL:         *serverURL,
 		PersistentSession: *persistent,
@@ -67,10 +76,14 @@ func main() {
 		gologger.Fatal().Msgf("Could not create client: %s\n", err)
 	}
 
+	builderz := &bytes.Buffer{}
+
 	gologger.Info().Msgf("Listing %d payload for OOB Testing\n", *n)
 	for i := 0; i < *n; i++ {
-		gologger.Info().Msgf("%s\n", client.URL())
+		// gologger.Info().Msgf("%s\n", client.URL())
+		builderz.WriteString(fmt.Sprintf("%s\n", client.URL()))
 	}
+	writeOutput(payloadsFile, builderz)
 
 	// show all interactions
 	noFilter := !*dnsOnly && !*httpOnly && !*smtpOnly
